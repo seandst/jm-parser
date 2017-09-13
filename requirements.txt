@@ -1,0 +1,6 @@
+pbr
+appdirs
+arrow
+click
+requests
+scrapy
