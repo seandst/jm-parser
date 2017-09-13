@@ -3,6 +3,8 @@
 Parses/acts on various bits of metadata available in the upstream [Jenkins](jenkins.io) project,
 including update centers and package repositories.
 
+Once installed, its CLI functionality should be exposed via the 'jm' executable.
+
 This project is narrowly focused on specific requirements related to supporting custom-made
 distributions of jenkins on a specific support timeline, and is likely not generally useful.
 
