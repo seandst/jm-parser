@@ -379,7 +379,7 @@ def update_plugin_lists(plugin_lists_dir, available_plugins, dry_run, test,
     # order matters here, any plugin in a list should include its dependencies in that list unless
     # that plugin has been seen in a previous list. This is also what seen_plugins is tracking
     seen_plugins = set()
-    missing_plugins = set()
+    missing_plugins = dict()
     for plugin_list_file in lists:
         plugin_list, removed_plugins = _process_plugin_list(
             plugin_list_file, available_plugins, remove_missing)
@@ -417,6 +417,6 @@ def update_plugin_lists(plugin_lists_dir, available_plugins, dry_run, test,
 
         # update seen plugin list so plugins in this file aren't included in later files
         seen_plugins.update(set(plugin.name for plugin in plugin_list))
-        missing_plugins.update(removed_plugins)
+        missing_plugins[plugin_list_file] = removed_plugins
 
     return missing_plugins
