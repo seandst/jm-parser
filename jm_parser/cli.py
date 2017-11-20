@@ -105,15 +105,17 @@ def update_plugin_lists(plugin_lists_dir, dry_run, test, plugin, remove_missing,
     available_plugins = parsing.get_available_plugins(uc_data)
     missing_plugins = parsing.update_plugin_lists(plugin_lists_dir, available_plugins, dry_run,
                                                   test, remove_missing, plugin)
-    if missing_plugins:
+    if any(missing_plugins.values()):
         if remove_missing:
             print('Some plugins are no longer available upstream and have been removed.')
         else:
             print('Some plugins are no longer available upstream.')
         for plugin_list_file in sorted(missing_plugins):
-            print('Plugins no longer available listed in {}'.format(plugin_list_file))
-            for plugin_name in missing_plugins[plugin_list_file]:
-                print(' - {} ({})'.format(plugin_name, PLUGIN_BASE_URL + plugin_name))
+            plugin_list = missing_plugins[plugin_list_file]
+            if plugin_list:
+                print('Plugins no longer available listed in {}'.format(plugin_list_file))
+                for plugin_name in sorted(plugin_list):
+                    print(' - {}'.format(plugin_name))
 
 
 @jm_cli_entry.command(name="compile-distribution")
