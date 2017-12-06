@@ -284,6 +284,25 @@ def find_plugin(plugin_name, plugin_iterable):
         return None
 
 
+def diff_uc_plugins(uc_urls_a, uc_urls_b, ignore_cache=False):
+    # combine lists of available plugins from 'a' and 'b' UCs
+    plugins_a = {}
+    for uc_url in uc_urls_a:
+        uc_data = get_uc_data(uc_url)
+        plugins_a.update(get_available_plugins(uc_data))
+
+    plugins_b = {}
+    for uc_url in uc_urls_b:
+        uc_data = get_uc_data(uc_url)
+        plugins_b.update(get_available_plugins(uc_data))
+
+    # get diffy, report plugins in set 'a' not in set 'b' and vice versa
+    diff_a = filter(lambda p: p not in plugins_b, plugins_a)
+    diff_b = filter(lambda p: p not in plugins_a, plugins_b)
+
+    return diff_a, diff_b
+
+
 def warn_if_newer_plugin(plugin, plugin_iterable):
     """Warn if a given plugin version in unavailable in a given iterable.
 

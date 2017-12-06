@@ -146,8 +146,8 @@ def compile_distribution(plugin_lists_dir, dist_dir, xy_version):
         # already iterable to multiple=True in click option def
         xy_versions = xy_version
 
+    # TODO: this is too much work to do in the cli side, so break this out into lib functions
     for xy_version in xy_versions:
-        # TODO: this is too much work to do in the cli side, so break this out into lib functions
         # ensure plugin lists dir for xy_version exists
         xy_plugin_lists_dir = os.path.join(plugin_lists_dir, xy_version)
         xy_plugin_lists_glob = os.path.join(xy_plugin_lists_dir, '*.txt')
@@ -169,3 +169,38 @@ def compile_distribution(plugin_lists_dir, dist_dir, xy_version):
             shutil.copyfile(txt_file, dest)
         # After all the prep work and copy of local stuff, scrape rpms and wars
         scraping.scrape_for_versions(xy_versions, dist_dir, allow_prompt=True)
+
+
+@jm_cli_entry.command(name="diff-uc-plugins")
+@click.option('--uc-url-a', multiple=True, required=True,
+              help="URL of a UC's update-center.json file. Can be specific multiple times.")
+@click.option('--uc-url-b', multiple=True, required=True,
+              help="URL of a UC's update-center.json file. Can be specific multiple times.")
+@_ignore_cache_decorator
+def diff_uc_plugins(uc_url_a, uc_url_b, ignore_cache):
+    """Given URLs to two sets of update centers, print plugins that do not appear in both sets.
+
+    At least one of each --uc-url-* option is required. When multiple UC URLs are provided for a
+    given set, all UC plugin lists will be aggregated before diffing.
+
+    """
+    # We could write some fancy code to DRY this up, but it would come at the expense of
+    # readability, and not add significant benefits.
+    diff_a, diff_b = parsing.diff_uc_plugins(uc_url_a, uc_url_b, ignore_cache)
+
+    if diff_a:
+        click.echo('Plugins in set "a" not found in set "b":')
+    else:
+        click.echo('All plugins in set "a" found in set "b"')
+    for plugin in diff_a:
+        click.echo('{}'.format(plugin.name))
+
+    # put a newline between set outputs for readability
+    click.echo('')
+
+    if diff_b:
+        click.echo('Plugins in set "b" not found in set "a":')
+    else:
+        click.echo('All plugins in set "b" found in set "a"')
+    for plugin in diff_b:
+        click.echo('{}'.format(plugin.name))
