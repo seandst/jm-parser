@@ -25,6 +25,7 @@ except ImportError:
 UC_JSON = 'update-center.json'
 VERSION_1651 = LooseVersion('1.651')
 PLUGIN_PROD_LISTS = ('default.txt', 'optional.txt')
+PLUGIN_BLACKLIST = 'blacklist.txt'
 PLUGIN_TEST_LISTS = ('default-test.txt', 'optional-test.txt')
 
 
@@ -394,11 +395,13 @@ def update_plugin_lists(plugin_lists_dir, available_plugins, dry_run, test,
         lists = [os.path.join(plugin_lists_dir, plugin_list) for plugin_list in PLUGIN_TEST_LISTS]
     else:
         lists = [os.path.join(plugin_lists_dir, plugin_list) for plugin_list in PLUGIN_PROD_LISTS]
+    blacklist_file = os.path.join(plugin_lists_dir, PLUGIN_BLACKLIST)
 
     # order matters here, any plugin in a list should include its dependencies in that list unless
     # that plugin has been seen in a previous list. This is also what seen_plugins is tracking
     seen_plugins = set()
     missing_plugins = dict()
+    blacklist = _process_plugin_list(blacklist_file, [])[0]
     for plugin_list_file in lists:
         plugin_list, removed_plugins = _process_plugin_list(
             plugin_list_file, available_plugins, remove_missing)
@@ -431,6 +434,11 @@ def update_plugin_lists(plugin_lists_dir, available_plugins, dry_run, test,
         # now refine the plugin list to get us the list of all the latest plugins and their
         # dependencies and write out the new file
         plugin_list = _refine_plugin_list(plugin_list, seen_plugins)
+        for plugin in blacklist:
+            if plugin in plugin_list:
+                warnings.warn(
+                    'Blacklisted plugin "{}" seen when processing {}'.format(
+                        plugin.name, plugin_list_file), RuntimeWarning)
         if not dry_run:
             _write_plugin_list(plugin_list_file, plugin_list)
 
